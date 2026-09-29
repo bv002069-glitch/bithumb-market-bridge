@@ -36,18 +36,23 @@ function ret(c:Candle[],n:number){
 }
 
 function qualityGate(t:any,frames:Record<string,any>){
-  const issues:string[]=[];
+  const issues:string[]=[],frame_age_ms:Record<string,number|null>={};
+  const maxAge:Record<string,number>={day:50*3600000,h4:9*3600000,h1:150*60000,m10:25*60000};
   let status:"PASS"|"WARN"|"FAIL"="PASS";
   for(const [name,f] of Object.entries(frames)){
     const q=f?.quality;
     if(q?.status==="FAIL"){ status="FAIL"; issues.push(`${name}:FAIL:${(q.issues??[]).join(",")||"unknown"}`); }
     else if(q?.status==="WARN"&&status!=="FAIL"){ status="WARN"; issues.push(`${name}:WARN:${(q.issues??[]).join(",")||"unknown"}`); }
+    const lc=f?.last_closed,age=lc?Math.max(0,Date.now()-new Date(lc+"+09:00").getTime()):null;
+    frame_age_ms[name]=age;
+    if(age===null){ if(status==="PASS") status="WARN"; issues.push(`${name}:last_closed_missing`); }
+    else if(maxAge[name]&&age>maxAge[name]){ status="FAIL"; issues.push(`${name}:stale`); }
   }
   const ts=Number(t?.timestamp??t?.trade_timestamp??0);
   const ticker_age_ms=ts?Math.max(0,Date.now()-ts):null;
   if(!ts){ if(status==="PASS") status="WARN"; issues.push("ticker_timestamp_missing"); }
   else if(ticker_age_ms!>300000){ status="FAIL"; issues.push("ticker_stale_gt_5m"); }
-  return {status,usable_for_decision:status==="PASS",ticker_age_ms,issues};
+  return {status,usable_for_decision:status==="PASS",ticker_age_ms,frame_age_ms,issues};
 }
 
 function combinedQuality(...qs:any[]){
