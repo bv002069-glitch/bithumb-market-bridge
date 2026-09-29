@@ -5,18 +5,39 @@ const closed=(c:Candle[])=>c.filter(x=>x.closed);
 
 function summary(c:Candle[]){
   const x=closed(c),p=x.map(v=>v.trade_price),a=atr(x),last=x.at(-1);
+  const current=c.at(-1)?.closed===false?c.at(-1):null;
   return {
     last_closed:last?.candle_date_time_kst??null,
+    open:last?.opening_price??null,
+    high:last?.high_price??null,
+    low:last?.low_price??null,
     close:last?.trade_price??null,
+    closed:last?true:null,
+    ma7:ma(p,7),
+    ma14:ma(p,14),
     ma20:ma(p,20),
+    ma30:ma(p,30),
     ma60:ma(p,60),
+    ma90:ma(p,90),
     ema20:ema(p,20),
     ema50:ema(p,50),
     rsi14:rsi(p),
     atr14:a,
     atr_move:last&&a?pct(last.trade_price,last.opening_price)!/(a/last.opening_price*100):null,
+    volume:last?.candle_acc_trade_volume??null,
+    trade_value:last?.candle_acc_trade_price??null,
     volume_ratio_20:volumeRatio(x),
     structure_proxy:structureProxy(x),
+    current_candle:current?{
+      time:current.candle_date_time_kst,
+      open:current.opening_price,
+      high:current.high_price,
+      low:current.low_price,
+      close:current.trade_price,
+      volume:current.candle_acc_trade_volume,
+      trade_value:current.candle_acc_trade_price,
+      closed:false
+    }:null,
     quality:quality(x,60)
   };
 }
