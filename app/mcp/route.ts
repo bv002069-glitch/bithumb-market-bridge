@@ -7,7 +7,7 @@ const ro={readOnlyHint:true,destructiveHint:false,openWorldHint:true,idempotentH
 const handler=createMcpHandler(server=>{
   server.registerTool("market_snapshot",{
     title:"Bithumb market snapshot",
-    description:"Get a read-only Bithumb KRW market snapshot with day, 4H, 1H and 10m structure metrics, BTC relative strength, session VWAP, same-hour volume context, data-quality checks, and optional R/R from a planned entry or current price.",
+    description:"Get a read-only Bithumb KRW market snapshot with day, 4H, 1H and 10m OHLC, MA7/14/20/30/60/90, EMA20/50, volume, structure metrics, BTC relative strength, session VWAP, same-hour volume context, data-quality checks, and optional R/R from a planned entry or current price.",
     inputSchema:z.object({
       symbol:z.string().describe("Ticker such as SUI, XRP, or KRW-BTC"),
       planned_entry:z.number().positive().optional(),
